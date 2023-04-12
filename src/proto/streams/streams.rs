@@ -583,6 +583,9 @@ impl Inner {
             return Ok(());
         }
 
+        println!("num_active_streams: {}", self.store.num_active_streams());
+        println!("num_wired_streams: {}", self.store.num_wired_streams());
+
         let stream = match self.store.find_mut(&id) {
             Some(stream) => stream,
             None => {
