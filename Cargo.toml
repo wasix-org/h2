@@ -44,6 +44,7 @@ members = [
 
 tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = [
   "codec",
+  "io",
 ] }
 
 bytes = "1"
@@ -52,6 +53,7 @@ futures-sink = { version = "0.3", default-features = false }
 futures-util = { version = "0.3", default-features = false }
 tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = [
   "io-util",
+  "fs",
 ] }
 http = "0.2"
 tracing = { version = "0.1.35", default-features = false, features = ["std"] }
@@ -77,6 +79,7 @@ tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", feat
   "macros",
   "sync",
   "net",
+  "fs",
 ] }
 tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git" }
 env_logger = { version = "0.10", default-features = false }
