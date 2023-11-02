@@ -33,19 +33,24 @@ unstable = []
 
 [workspace]
 members = [
-    "tests/h2-fuzz",
-    "tests/h2-tests",
-    "tests/h2-support",
-    "util/genfixture",
-    "util/genhuff",
+  "tests/h2-fuzz",
+  "tests/h2-tests",
+  "tests/h2-support",
+  "util/genfixture",
+  "util/genhuff",
 ]
 
 [dependencies]
 futures-core = { version = "0.3", default-features = false }
 futures-sink = { version = "0.3", default-features = false }
 futures-util = { version = "0.3", default-features = false }
-tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = ["codec"] }
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = ["io-util"] }
+tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = [
+  "codec",
+] }
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = [
+  "io-util",
+  "fs",
+] }
 bytes = "1"
 http = "0.2"
 tracing = { version = "0.1.21", default-features = false, features = ["std"] }
@@ -66,7 +71,13 @@ serde = "1.0.0"
 serde_json = "1.0.0"
 
 # Examples
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = ["rt-multi-thread", "macros", "sync", "net"] }
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = [
+  "rt-multi-thread",
+  "macros",
+  "sync",
+  "net",
+  "fs",
+] }
 env_logger = { version = "0.9", default-features = false }
 tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git" }
 webpki-roots = "0.22.2"
