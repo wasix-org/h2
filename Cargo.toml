@@ -68,8 +68,8 @@ serde_json = "1.0.0"
 # Examples
 tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = ["rt-multi-thread", "macros", "sync", "net"] }
 env_logger = { version = "0.10", default-features = false }
-tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git" }
-webpki-roots = "0.25"
+tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git", branch = "0.25.0" }
+webpki-roots = "0.26"
 
 [package.metadata.docs.rs]
 features = ["stream"]
