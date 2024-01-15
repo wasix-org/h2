@@ -5,7 +5,7 @@ name = "h2"
 #   - html_root_url.
 # - Update CHANGELOG.md.
 # - Create git tag
-version = "0.3.20"
+version = "0.3.23"
 license = "MIT"
 authors = [
   "Carl Lerche <me@carllerche.com>",
@@ -19,7 +19,7 @@ keywords = ["http", "async", "non-blocking"]
 categories = ["asynchronous", "web-programming", "network-programming"]
 exclude = ["fixtures/**", "ci/**"]
 edition = "2018"
-rust-version = "1.56"
+rust-version = "1.63"
 
 [features]
 # Enables `futures::Stream` implementations for various types.
@@ -44,14 +44,14 @@ members = [
 futures-core = { version = "0.3", default-features = false }
 futures-sink = { version = "0.3", default-features = false }
 futures-util = { version = "0.3", default-features = false }
-tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = ["codec"] }
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = ["io-util"] }
+tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = ["codec", "io"] }
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = ["io-util"] }
 bytes = "1"
 http = "0.2"
-tracing = { version = "0.1.21", default-features = false, features = ["std"] }
+tracing = { version = "0.1.35", default-features = false, features = ["std"] }
 fnv = "1.0.5"
 slab = "0.4.2"
-indexmap = { version = "1.5.2", features = ["std"] }
+indexmap = { version = "2", features = ["std"] }
 
 [dev-dependencies]
 
@@ -66,10 +66,10 @@ serde = "1.0.0"
 serde_json = "1.0.0"
 
 # Examples
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = ["rt-multi-thread", "macros", "sync", "net"] }
-env_logger = { version = "0.9", default-features = false }
-tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git" }
-webpki-roots = "0.22.2"
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = ["rt-multi-thread", "macros", "sync", "net"] }
+env_logger = { version = "0.10", default-features = false }
+tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git", branch = "0.25.0" }
+webpki-roots = "0.25"
 
 [package.metadata.docs.rs]
 features = ["stream"]

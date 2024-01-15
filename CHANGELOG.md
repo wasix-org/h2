@@ -1,3 +1,19 @@
+# 0.3.23 (January 10, 2024)
+
+* Backport fix from 0.4.1 for stream capacity assignment.
+
+# 0.3.22 (November 15, 2023)
+
+* Add `header_table_size(usize)` option to client and server builders.
+* Improve throughput when vectored IO is not available.
+* Update indexmap to 2.
+
+# 0.3.21 (August 21, 2023)
+
+* Fix opening of new streams over peer's max concurrent limit.
+* Fix `RecvStream` to return data even if it has received a `CANCEL` stream error.
+* Update MSRV to 1.63.
+
 # 0.3.20 (June 26, 2023)
 
 * Fix panic if a server received a request with a `:status` pseudo header in the 1xx range.
