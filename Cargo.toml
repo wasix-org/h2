@@ -44,8 +44,8 @@ members = [
 futures-core = { version = "0.3", default-features = false }
 futures-sink = { version = "0.3", default-features = false }
 futures-util = { version = "0.3", default-features = false }
-tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = ["codec", "io"] }
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = ["io-util"] }
+tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = ["codec", "io"] }
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = ["io-util"] }
 bytes = "1"
 http = "1"
 tracing = { version = "0.1.35", default-features = false, features = ["std"] }
@@ -66,7 +66,7 @@ serde = "1.0.0"
 serde_json = "1.0.0"
 
 # Examples
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = ["rt-multi-thread", "macros", "sync", "net"] }
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = ["rt-multi-thread", "macros", "sync", "net"] }
 env_logger = { version = "0.10", default-features = false }
 tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git", branch = "0.25.0" }
 webpki-roots = "0.26"
