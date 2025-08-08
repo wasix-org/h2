@@ -1,6 +1,5 @@
 #![deny(warnings)]
 
-use futures::future::{join, poll_fn};
 use futures::StreamExt;
 use h2_support::prelude::*;
 use tokio::io::AsyncWriteExt;
@@ -866,7 +865,7 @@ async fn too_big_headers_sends_reset_after_431_if_not_eos() {
         client
             .recv_frame(frames::headers(1).response(431).eos())
             .await;
-        client.recv_frame(frames::reset(1).refused()).await;
+        client.recv_frame(frames::reset(1).protocol_error()).await;
     };
 
     let srv = async move {
@@ -878,6 +877,55 @@ async fn too_big_headers_sends_reset_after_431_if_not_eos() {
 
         let req = srv.next().await;
         assert!(req.is_none(), "req is {:?}", req);
+    };
+
+    join(client, srv).await;
+}
+
+#[tokio::test]
+async fn too_many_continuation_frames_sends_goaway() {
+    h2_support::trace_init!();
+    let (io, mut client) = mock::new();
+
+    let client = async move {
+        let settings = client.assert_server_handshake().await;
+        assert_frame_eq(settings, frames::settings().max_header_list_size(1024 * 32));
+
+        // the mock impl automatically splits into CONTINUATION frames if the
+        // headers are too big for one frame. So without a max header list size
+        // set, we'll send a bunch of headers that will eventually get nuked.
+        client
+            .send_frame(
+                frames::headers(1)
+                    .request("GET", "https://example.com/")
+                    .field("a".repeat(10_000), "b".repeat(10_000))
+                    .field("c".repeat(10_000), "d".repeat(10_000))
+                    .field("e".repeat(10_000), "f".repeat(10_000))
+                    .field("g".repeat(10_000), "h".repeat(10_000))
+                    .field("i".repeat(10_000), "j".repeat(10_000))
+                    .field("k".repeat(10_000), "l".repeat(10_000))
+                    .field("m".repeat(10_000), "n".repeat(10_000))
+                    .field("o".repeat(10_000), "p".repeat(10_000))
+                    .field("y".repeat(10_000), "z".repeat(10_000)),
+            )
+            .await;
+        client
+            .recv_frame(frames::go_away(0).calm().data("too_many_continuations"))
+            .await;
+    };
+
+    let srv = async move {
+        let mut srv = server::Builder::new()
+            // should mean ~3 continuation
+            .max_header_list_size(1024 * 32)
+            .handshake::<_, Bytes>(io)
+            .await
+            .expect("handshake");
+
+        let err = srv.next().await.unwrap().expect_err("server");
+        assert!(err.is_go_away());
+        assert!(err.is_library());
+        assert_eq!(err.reason(), Some(Reason::ENHANCE_YOUR_CALM));
     };
 
     join(client, srv).await;
@@ -1203,11 +1251,11 @@ async fn extended_connect_protocol_disabled_by_default() {
         assert_eq!(settings.is_extended_connect_protocol_enabled(), None);
 
         client
-            .send_frame(
-                frames::headers(1)
-                    .request("CONNECT", "http://bread/baguette")
-                    .protocol("the-bread-protocol"),
-            )
+            .send_frame(frames::headers(1).pseudo(frame::Pseudo::request(
+                Method::CONNECT,
+                uri::Uri::from_static("http://bread/baguette"),
+                Protocol::from_static("the-bread-protocol").into(),
+            )))
             .await;
 
         client.recv_frame(frames::reset(1).protocol_error()).await;
@@ -1236,11 +1284,11 @@ async fn extended_connect_protocol_enabled_during_handshake() {
         assert_eq!(settings.is_extended_connect_protocol_enabled(), Some(true));
 
         client
-            .send_frame(
-                frames::headers(1)
-                    .request("CONNECT", "http://bread/baguette")
-                    .protocol("the-bread-protocol"),
-            )
+            .send_frame(frames::headers(1).pseudo(frame::Pseudo::request(
+                Method::CONNECT,
+                uri::Uri::from_static("http://bread/baguette"),
+                Protocol::from_static("the-bread-protocol").into(),
+            )))
             .await;
 
         client.recv_frame(frames::headers(1).response(200)).await;
@@ -1283,11 +1331,11 @@ async fn reject_pseudo_protocol_on_non_connect_request() {
         assert_eq!(settings.is_extended_connect_protocol_enabled(), Some(true));
 
         client
-            .send_frame(
-                frames::headers(1)
-                    .request("GET", "http://bread/baguette")
-                    .protocol("the-bread-protocol"),
-            )
+            .send_frame(frames::headers(1).pseudo(frame::Pseudo::request(
+                Method::GET,
+                uri::Uri::from_static("http://bread/baguette"),
+                Some(Protocol::from_static("the-bread-protocol")),
+            )))
             .await;
 
         client.recv_frame(frames::reset(1).protocol_error()).await;
@@ -1311,7 +1359,7 @@ async fn reject_pseudo_protocol_on_non_connect_request() {
 }
 
 #[tokio::test]
-async fn reject_authority_target_on_extended_connect_request() {
+async fn reject_extended_connect_request_without_scheme() {
     h2_support::trace_init!();
 
     let (io, mut client) = mock::new();
@@ -1322,11 +1370,12 @@ async fn reject_authority_target_on_extended_connect_request() {
         assert_eq!(settings.is_extended_connect_protocol_enabled(), Some(true));
 
         client
-            .send_frame(
-                frames::headers(1)
-                    .request("CONNECT", "bread:80")
-                    .protocol("the-bread-protocol"),
-            )
+            .send_frame(frames::headers(1).pseudo(frame::Pseudo {
+                method: Method::CONNECT.into(),
+                path: util::byte_str("/").into(),
+                protocol: Protocol::from("the-bread-protocol").into(),
+                ..Default::default()
+            }))
             .await;
 
         client.recv_frame(frames::reset(1).protocol_error()).await;
@@ -1350,7 +1399,7 @@ async fn reject_authority_target_on_extended_connect_request() {
 }
 
 #[tokio::test]
-async fn reject_non_authority_target_on_connect_request() {
+async fn reject_extended_connect_request_without_path() {
     h2_support::trace_init!();
 
     let (io, mut client) = mock::new();
@@ -1361,7 +1410,12 @@ async fn reject_non_authority_target_on_connect_request() {
         assert_eq!(settings.is_extended_connect_protocol_enabled(), Some(true));
 
         client
-            .send_frame(frames::headers(1).request("CONNECT", "https://bread/baguette"))
+            .send_frame(frames::headers(1).pseudo(frame::Pseudo {
+                method: Method::CONNECT.into(),
+                scheme: util::byte_str("https").into(),
+                protocol: Protocol::from("the-bread-protocol").into(),
+                ..Default::default()
+            }))
             .await;
 
         client.recv_frame(frames::reset(1).protocol_error()).await;
@@ -1415,4 +1469,86 @@ async fn reject_informational_status_header_in_request() {
     };
 
     join(client, srv).await;
+}
+
+#[tokio::test]
+async fn client_drop_connection_without_close_notify() {
+    h2_support::trace_init!();
+
+    let (io, mut client) = mock::new();
+    let client = async move {
+        let _recv_settings = client.assert_server_handshake().await;
+        client
+            .send_frame(frames::headers(1).request("GET", "https://example.com/"))
+            .await;
+        client.send_frame(frames::data(1, &b"hello"[..])).await;
+        client.recv_frame(frames::headers(1).response(200)).await;
+
+        client.close_without_notify(); // Client closed without notify causing UnexpectedEof
+    };
+
+    let mut builder = server::Builder::new();
+    builder.max_concurrent_streams(1);
+
+    let h2 = async move {
+        let mut srv = builder.handshake::<_, Bytes>(io).await.expect("handshake");
+        let (req, mut stream) = srv.next().await.unwrap().unwrap();
+
+        assert_eq!(req.method(), &http::Method::GET);
+
+        let rsp = http::Response::builder().status(200).body(()).unwrap();
+        stream.send_response(rsp, false).unwrap();
+
+        // Step the conn state forward and hitting the EOF
+        // But we have no outstanding request from client to be satisfied, so we should not return
+        // an error
+        let _ = poll_fn(|cx| srv.poll_closed(cx)).await.unwrap();
+    };
+
+    join(client, h2).await;
+}
+
+#[tokio::test]
+async fn init_window_size_smaller_than_default_should_use_default_before_ack() {
+    h2_support::trace_init!();
+
+    let (io, mut client) = mock::new();
+    let client = async move {
+        // Client can send in some data before ACK;
+        // Server needs to make sure the Recv stream has default window size
+        // as per https://datatracker.ietf.org/doc/html/rfc9113#name-initial-flow-control-window
+        client.write_preface().await;
+        client
+            .send(frame::Settings::default().into())
+            .await
+            .unwrap();
+        client.next().await.expect("unexpected EOF").unwrap();
+        client
+            .send_frame(frames::headers(1).request("GET", "https://example.com/"))
+            .await;
+        client.send_frame(frames::data(1, &b"hello"[..])).await;
+        client.send(frame::Settings::ack().into()).await.unwrap();
+        client.next().await;
+        client
+            .recv_frame(frames::headers(1).response(200).eos())
+            .await;
+    };
+
+    let mut builder = server::Builder::new();
+    builder.max_concurrent_streams(1);
+    builder.initial_window_size(1);
+    let h2 = async move {
+        let mut srv = builder.handshake::<_, Bytes>(io).await.expect("handshake");
+        let (req, mut stream) = srv.next().await.unwrap().unwrap();
+
+        assert_eq!(req.method(), &http::Method::GET);
+
+        let rsp = http::Response::builder().status(200).body(()).unwrap();
+        stream.send_response(rsp, true).unwrap();
+
+        // Drive the state forward
+        let _ = poll_fn(|cx| srv.poll_closed(cx)).await.unwrap();
+    };
+
+    join(client, h2).await;
 }
