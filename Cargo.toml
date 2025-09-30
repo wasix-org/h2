@@ -44,10 +44,10 @@ members = [
 futures-core = { version = "0.3", default-features = false }
 futures-sink = { version = "0.3", default-features = false }
 futures-util = { version = "0.3", default-features = false }
-tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = [
+tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = [
   "codec",
 ] }
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = [
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = [
   "io-util",
   "fs",
 ] }
@@ -71,7 +71,7 @@ serde = "1.0.0"
 serde_json = "1.0.0"
 
 # Examples
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll", features = [
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.35.1", features = [
   "rt-multi-thread",
   "macros",
   "sync",
