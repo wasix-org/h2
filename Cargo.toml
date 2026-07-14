@@ -3,7 +3,7 @@ name = "h2"
 # When releasing to crates.io:
 # - Update CHANGELOG.md.
 # - Create git tag
-version = "0.4.12"
+version = "0.4.12+wasix.1"
 license = "MIT"
 authors = [
   "Carl Lerche <me@carllerche.com>",
@@ -42,8 +42,8 @@ members = [
 atomic-waker = "1.0.0"
 futures-core = { version = "0.3", default-features = false }
 futures-sink = { version = "0.3", default-features = false }
-tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = ["codec", "io"] }
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = ["io-util"] }
+tokio-util = { version = "0.7.15", features = ["codec", "io"] }
+tokio = { version = "1.47.0", features = ["io-util"] }
 bytes = "1"
 http = "1"
 tracing = { version = "0.1.35", default-features = false, features = ["std"] }
@@ -64,10 +64,10 @@ serde = "1.0.0"
 serde_json = "1.0.0"
 
 # Examples
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = ["rt-multi-thread", "macros", "sync", "net"] }
+tokio = { version = "1.47.0", features = ["rt-multi-thread", "macros", "sync", "net"] }
 env_logger = { version = "0.10", default-features = false }
-tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git", branch = "wasix-0.26.2" }
-webpki-roots = { git = "https://github.com/wasix-org/webpki-roots.git", branch = "wasix-1.0.2" }
+tokio-rustls = "0.26.2"
+webpki-roots = "1.0.2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fuzzing)"] }
