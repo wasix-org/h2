@@ -5,7 +5,7 @@ name = "h2"
 #   - html_root_url.
 # - Update CHANGELOG.md.
 # - Create git tag
-version = "0.3.20"
+version = "0.3.20+wasix.1"
 license = "MIT"
 authors = [
   "Carl Lerche <me@carllerche.com>",
@@ -44,13 +44,8 @@ members = [
 futures-core = { version = "0.3", default-features = false }
 futures-sink = { version = "0.3", default-features = false }
 futures-util = { version = "0.3", default-features = false }
-tokio-util = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = [
-  "codec",
-] }
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = [
-  "io-util",
-  "fs",
-] }
+tokio-util = { version = "0.7.15", features = [   "codec", ] }
+tokio = { version = "1.47.0", features = [   "io-util",   "fs", ] }
 bytes = "1"
 http = "0.2"
 tracing = { version = "0.1.21", default-features = false, features = ["std"] }
@@ -71,15 +66,9 @@ serde = "1.0.0"
 serde_json = "1.0.0"
 
 # Examples
-tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "wasix-1.47.0", features = [
-  "rt-multi-thread",
-  "macros",
-  "sync",
-  "net",
-  "fs",
-] }
+tokio = { version = "1.47.0", features = [   "rt-multi-thread",   "macros",   "sync",   "net",   "fs", ] }
 env_logger = { version = "0.9", default-features = false }
-tokio-rustls = { git = "https://github.com/wasix-org/tokio-rustls.git" }
+tokio-rustls = "0.26"
 webpki-roots = "0.22.2"
 
 [package.metadata.docs.rs]
